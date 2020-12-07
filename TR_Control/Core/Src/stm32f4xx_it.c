@@ -31,6 +31,7 @@
 #include "remote.h"
 #include "stm32f4xx_hal.h"
 #include "main.h"
+#include "uart_communicate.h"
 
 /* USER CODE END Includes */
 
@@ -53,9 +54,10 @@
 /* USER CODE BEGIN PV */
 ROBO_BASE Robo_Base;
 uint8_t mode=0;
-uint8_t CAN_Data[8]={0};
 uint8_t Tx_Data[8] = {0};
 CAN_RxHeaderTypeDef RxMeg;
+extern UART_RX_BUFFER Uart1_Rx;
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,7 +79,7 @@ extern DMA_HandleTypeDef hdma_usart2_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
 /* USER CODE BEGIN EV */
-//extern Motor_3508_Info test;
+
 /* USER CODE END EV */
 
 /******************************************************************************/
@@ -107,6 +109,7 @@ void HardFault_Handler(void)
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+		
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
@@ -245,7 +248,7 @@ void DMA1_Stream6_IRQHandler(void)
   */
 void CAN1_RX0_IRQHandler(void)
 {
- /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
+  /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
   TX_BUFFER Tx;
 	extern ROBO_BASE Robo_Base;
 	CAN_RxHeaderTypeDef RxMeg;
@@ -283,7 +286,8 @@ void TIM3_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-  Usart_Receive_IDLE(&huart1);
+ // Usart_Receive_IDLE(&huart1);
+	Uart_DMA_Process(&huart1,&hdma_usart1_rx,&Uart1_Rx,&RemoteDataProcess);
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */
@@ -297,7 +301,7 @@ void USART1_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
- //  UsartReceive_IDLE(&huart2) ;
+	
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
   /* USER CODE BEGIN USART2_IRQn 1 */

@@ -85,7 +85,7 @@ void HAL_CAN_MspInit(CAN_HandleTypeDef* canHandle)
 void HAL_CAN_MspDeInit(CAN_HandleTypeDef* canHandle)
 {
 
-  if(canHandle->Instance==CAN1)
+  if(canHandle->Instance==CAN1) 
   {
   /* USER CODE BEGIN CAN1_MspDeInit 0 */
 

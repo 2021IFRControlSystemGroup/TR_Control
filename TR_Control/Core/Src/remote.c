@@ -1,11 +1,6 @@
 #include "remote.h"
-#define LENGTH 18
-uint8_t Rx_buffer[2][LENGTH]={{0}};
-RC_Ctl_t RC_CtrlData=RC_CtrlData_Initialize;
-extern UART_HandleTypeDef huart1;
-extern DMA_HandleTypeDef hdma_usart1_rx;
-uint8_t uart1_rx_buff_num=0;
 
+RC_Ctl_t RC_CtrlData=RC_CtrlData_Initialize;
 
 void RemoteDataProcess(uint8_t *pData) 
 {     	
@@ -33,40 +28,5 @@ void RemoteDataProcess(uint8_t *pData)
 	RC_CtrlData.update = 1;
 }
 
-void Usart_Receive_IDLE(UART_HandleTypeDef *_huart)
-{
-	uint8_t this_frame_len=0;
-	if(_huart->Instance == USART1)
-	  { 
-		if((__HAL_UART_GET_FLAG(_huart,UART_FLAG_IDLE) != RESET))  
-		{   
-			__HAL_DMA_DISABLE(&hdma_usart1_rx);
-			__HAL_UART_CLEAR_IDLEFLAG(_huart);  
-			
-			this_frame_len = LENGTH - __HAL_DMA_GET_COUNTER(&hdma_usart1_rx);
-			if(uart1_rx_buff_num)
-			{
-				uart1_rx_buff_num = 0;
-				HAL_UART_Receive_DMA(&huart1, Rx_buffer[0], LENGTH);
-				/*deal   uart1_rx_buff[1]*/
-				if(this_frame_len == 18)
-					RemoteDataProcess(Rx_buffer[1]);
-			}
-			else
-			{
-				uart1_rx_buff_num = 1;
-				HAL_UART_Receive_DMA(&huart1, Rx_buffer[1], LENGTH);
-				if(this_frame_len == 18)
-					RemoteDataProcess(Rx_buffer[0]);
-			}
-		}
-	}
-}
-
-void Remote_Init(void)
-{
-	__HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE);
-	HAL_UART_Receive_DMA(&huart1,Rx_buffer[0],LENGTH);
-}
 
 

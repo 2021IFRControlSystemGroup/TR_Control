@@ -48,3 +48,5 @@ can_test(2)\stm32f4xx_it.o: ../Core/Inc/robo_base.h
 can_test(2)\stm32f4xx_it.o: D:\aaaMMJ\IFR\keil5\ARM\ARMCC\Bin\..\include\math.h
 can_test(2)\stm32f4xx_it.o: ../Core/Inc/chassis_control.h
 can_test(2)\stm32f4xx_it.o: ../Core/Inc/remote.h
+can_test(2)\stm32f4xx_it.o: ../Core/Inc/uart_communicate.h
+can_test(2)\stm32f4xx_it.o: ../Core/Inc/usart.h

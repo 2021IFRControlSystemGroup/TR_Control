@@ -31,6 +31,7 @@
 #include "robo_base.h"
 #include "remote.h"
 #include "chassis_control.h"
+#include "uart_communicate.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -53,9 +54,6 @@
 uint32_t SYS_Time=0;
 int Flag=0;
 extern ROBO_BASE Robo_Base;
-#define RX_LENGTH 20
-extern uint8_t Rx_buffer[RX_LENGTH];
-extern UART_HandleTypeDef huart2;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -109,7 +107,7 @@ int main(void)
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1,CAN_IT_RX_FIFO0_MSG_PENDING);
 	BASE_Init(&Robo_Base);
-	Remote_Init();
+  Usart_All_Init();
 /************************************************************************************/	
 /************************************************************************************/
   /* USER CODE END 2 */

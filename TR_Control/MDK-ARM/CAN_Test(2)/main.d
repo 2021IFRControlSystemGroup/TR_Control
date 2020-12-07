@@ -55,3 +55,4 @@ can_test(2)\main.o: ../Core/Inc/robo_base.h
 can_test(2)\main.o: D:\aaaMMJ\IFR\keil5\ARM\ARMCC\Bin\..\include\math.h
 can_test(2)\main.o: ../Core/Inc/remote.h
 can_test(2)\main.o: ../Core/Inc/chassis_control.h
+can_test(2)\main.o: ../Core/Inc/uart_communicate.h

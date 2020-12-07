@@ -157,6 +157,9 @@ void StartTask02(void const * argument)
   /* USER CODE END StartTask02 */
 }
 
+/* Private application code --------------------------------------------------*/
+/* USER CODE BEGIN Application */
+
 /* USER CODE END Application */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
