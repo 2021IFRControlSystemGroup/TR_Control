@@ -1,0 +1,27 @@
+--cpu Cortex-M4.fp
+"door\startup_stm32f405xx.o"
+"door\main.o"
+"door\gpio.o"
+"door\tim.o"
+"door\stm32f4xx_it.o"
+"door\stm32f4xx_hal_msp.o"
+"door\stm32f4xx_hal_tim.o"
+"door\stm32f4xx_hal_tim_ex.o"
+"door\stm32f4xx_hal_rcc.o"
+"door\stm32f4xx_hal_rcc_ex.o"
+"door\stm32f4xx_hal_flash.o"
+"door\stm32f4xx_hal_flash_ex.o"
+"door\stm32f4xx_hal_flash_ramfunc.o"
+"door\stm32f4xx_hal_gpio.o"
+"door\stm32f4xx_hal_dma_ex.o"
+"door\stm32f4xx_hal_dma.o"
+"door\stm32f4xx_hal_pwr.o"
+"door\stm32f4xx_hal_pwr_ex.o"
+"door\stm32f4xx_hal_cortex.o"
+"door\stm32f4xx_hal.o"
+"door\stm32f4xx_hal_exti.o"
+"door\system_stm32f4xx.o"
+--library_type=microlib --strict --scatter "door\door.sct"
+--summary_stderr --info summarysizes --map --xref --callgraph --symbols
+--info sizes --info totals --info unused --info veneers
+--list "door.map" -o door\door.axf
