@@ -246,12 +246,14 @@ void DMA1_Stream6_IRQHandler(void)
 /**
   * @brief This function handles CAN1 RX0 interrupts.
   */
+CAN_RxHeaderTypeDef RxMeg;
+
 void CAN1_RX0_IRQHandler(void)
 {
   /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
   TX_BUFFER Tx;
 	extern ROBO_BASE Robo_Base;
-	CAN_RxHeaderTypeDef RxMeg;
+	
   /* USER CODE END CAN1_RX0_IRQn 0 */
   HAL_CAN_IRQHandler(&hcan1);
   /* USER CODE BEGIN CAN1_RX0_IRQn 1 */
