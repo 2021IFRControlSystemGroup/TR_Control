@@ -2,14 +2,14 @@
 #include "can.h"
 
 extern ROBO_BASE* Robo_Base;
-CAN_HandleTypeDef hcan2;
+extern CAN_HandleTypeDef hcan2;
 
 void BASE_Init(ROBO_BASE *Robo)       
 {
   Speed_System* P_Speed=NULL;      
-  P_Speed=&Robo->Speed_MotorLF; PID_Init(&P_Speed->Speed_PID,	15.0f,	0.1f,	0,	9000,	0,	3000,	8000); P_Speed->Motor_Num=0;
-  P_Speed=&Robo->Speed_MotorLB; PID_Init(&P_Speed->Speed_PID,	15.0f,	0.1f,	0,	9000,	0,	3000,	8000); P_Speed->Motor_Num=1;
-  P_Speed=&Robo->Speed_MotorRF; PID_Init(&P_Speed->Speed_PID,	15.0f,	0.1f,	0,	9000,	0,	3000,	8000); P_Speed->Motor_Num=2;
+  P_Speed=&Robo->Speed_MotorLF; PID_Init(&P_Speed->Speed_PID,	15.0f,	0,	0,	2000,	0,	3000,	8000); P_Speed->Motor_Num=0; //5 9000
+  P_Speed=&Robo->Speed_MotorLB; PID_Init(&P_Speed->Speed_PID,	15.0f,	0,	0,	2000,	0,	3000,	8000); P_Speed->Motor_Num=1;
+  P_Speed=&Robo->Speed_MotorRF; PID_Init(&P_Speed->Speed_PID,	15.0f,	0,	0,	2000,	0,	3000,	8000); P_Speed->Motor_Num=2;
 }
 
 
@@ -121,7 +121,54 @@ void PID_Init(PID *pid, float Kp, float Ki, float Kd, float error_max, float dea
 	pid->output = 0;                  
 }
 
+//--------------------------------------------------------------------------------------------------//
+//????:
+//		PID????
+//
+//????:
+//		??PID??
+//
+//????:
+//		PID* PID??
+//		float ???
+//		float ???
+//		uint8_t ????
+//		uint8_t ???????
+//
+//????:
+//		????????, ???????????, ???????????????
+//
+//--------------------------------------------------------------------------------------------------//
+void PID_General_Cal(PID *pid, float fdbV, float tarV)
+{
 
+	pid->error =  tarV - fdbV;
+	if(pid->error > pid->error_max)
+		pid->error = pid->error_max;
+	if(pid->error < -pid->error_max)
+		pid->error = -pid->error_max;
+	if(pid->error > 0 && pid->error < pid->dead_line)
+		pid->error = 0;
+	if(pid->error < 0 && pid->error > - pid->dead_line)
+		pid->error = 0;
+	
+	pid->intergral = pid->intergral + pid->error;
+	if(pid->intergral > pid->intergral_max)
+		pid->intergral = pid->intergral_max;
+	if(pid->intergral < -pid->intergral_max)
+		pid->intergral = -pid->intergral_max;
+	
+	pid->derivative = pid->error - pid->error_last;
+	pid->error_last = pid->error;
+	
+	pid->output = pid->Kp*pid->error + pid->Ki*pid->intergral + pid->Kd*pid->derivative;
+	
+	if(pid->output > pid->output_max)
+		pid->output = pid->output_max;
+	if(pid->output < -pid->output_max)
+		pid->output = -pid->output_max;
+	
+}
 void PID_Speed_Cal(Speed_System* Speed_Motor,uint8_t *Tx_msg)
 {
 
@@ -168,10 +215,6 @@ void Send_To_Motor_(CAN_HandleTypeDef *hcan,uint8_t* Tx_Data)
   TxHeader.TransmitGlobalTime = DISABLE;
   TxHeader.DLC = 8;
         
-//  if (HAL_CAN_AddTxMessage(hcan, &TxHeader, Tx_Data, &TxMailbox) != HAL_OK)
-//  {
-//     Error_Handler();
-//  }
 	
 	can_box=HAL_CAN_GetTxMailboxesFreeLevel(hcan);
 	if(can_box>0)
@@ -179,5 +222,28 @@ void Send_To_Motor_(CAN_HandleTypeDef *hcan,uint8_t* Tx_Data)
 		HAL_CAN_AddTxMessage(hcan, &TxHeader, Tx_Data, &TxMailbox);
 	}
 }
+
+void Send_To_other(CAN_HandleTypeDef *hcan,uint8_t* Tx_Data,uint32_t ID,uint8_t DLC)
+{
+	int can_box;
+  CAN_TxHeaderTypeDef TxHeader;
+  uint32_t TxMailbox; 
+  TxHeader.RTR = 0;
+  TxHeader.IDE = 0;            
+  TxHeader.StdId=ID;
+  TxHeader.TransmitGlobalTime = DISABLE;
+  TxHeader.DLC = DLC;
+	can_box=HAL_CAN_GetTxMailboxesFreeLevel(hcan);
+	if(can_box>0)
+	{
+		HAL_CAN_AddTxMessage(hcan, &TxHeader, Tx_Data, &TxMailbox);
+	}
+		/* Transmission request Error */
+
+	else HAL_GPIO_WritePin(GPIOC,GPIO_PIN_0,GPIO_PIN_SET);
+	
+}
+
+
 
 

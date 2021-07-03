@@ -816,11 +816,13 @@ ARM Macro Assembler    Page 13
   417 0000001C                 END
               00000000 
               00000000 
-Command Line: --debug --xref --cpu=Cortex-M4.fp --apcs=interwork --depend=can_t
-est(2)\startup_stm32f405xx.d -ocan_test(2)\startup_stm32f405xx.o -I"E:\APP_File
-\Wechat\WeChat Files\wxid_6s9ltm8f7tzq22\FileStorage\File\2021-05\miniChassis\M
-DK-ARM\RTE" -IC:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include --predefine="__
-MICROLIB SETA 1" --list=startup_stm32f405xx.lst startup_stm32f405xx.s
+Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp --apcs=int
+erwork --depend=can_test(2)\startup_stm32f405xx.d -ocan_test(2)\startup_stm32f4
+05xx.o -IC:\Users\MY\Desktop\miniChassis\MDK-ARM\RTE -I"D:\aaa MMJ\IFR\keil5\AR
+M\PACK\ARM\CMSIS\5.7.0\CMSIS\Core\Include" -I"D:\aaa MMJ\IFR\keil5\ARM\PACK\Kei
+l\STM32F4xx_DFP\2.12.0" --predefine="__MICROLIB SETA 1" --predefine="__UVISION_
+VERSION SETA 514" --predefine="_RTE_ SETA 1" --predefine="STM32F405xx SETA 1" -
+-list=startup_stm32f405xx.lst startup_stm32f405xx.s
 
 
 
@@ -1872,4 +1874,4 @@ Symbol: __main
       At line 177 in file startup_stm32f405xx.s
 Comment: __main used once
 2 symbols
-439 symbols in table
+442 symbols in table

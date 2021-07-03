@@ -3,24 +3,9 @@
 
 #include "main.h"
 #include "robo_base.h"
-
-#define RC_CH_VALUE_MIN ((uint16_t)364 )
-#define RC_CH_VALUE_OFFSET ((uint16_t)1024)
-#define RC_CH_VALUE_MAX ((uint16_t)1684)
-
-#define RC_SW_UP ((uint16_t)1)
-#define RC_SW_MID ((uint16_t)3)
-#define RC_SW_DOWN ((uint16_t)2)
+#include "remote.h"
 
 
-
-//typedef struct 
-//{
-//	  float v1;
-//	  float v2;
-//	  float v3;
-//}chassis_speed;
- 
 typedef struct remote_data
 {
 	  float speed;
@@ -31,19 +16,56 @@ typedef struct remote_data
 typedef struct DISTANCE
 {
 	  int distance1;
-	  int distance2;
+	  float distance2;
 	  int distance3;
-	  int distance4;
+	  int16_t y;
+		int d13;
+	
+	  int16_t angle_error;
+	 
 }DISTANCE;
 
 
 
+typedef enum
+{
+	PREPARE,
+	ARMTOCATCH,
+	CAHSSISCAL,
+  CHASSISTOCATCH,
+	CATCHING,
+	CHASSISTOUPPER,
+	ARMTOUPPER,
+}WORKMODE_CATCH;
 
-//void chassis_speed_analysis(ROBO_BASE* Robo,remote_data data);
-void chassis_control(void);
-void chassis_rotate(void);
-void chassis_x(void);
-void chassis_y(void);
+typedef struct
+{
+	int chassis_do;
+  int chassis_BD_ok;
+	int chassis_advance_ok;
+	int chassis_catch_ok;
+}flag;
+
+
+
+
+void chassis_map_realsence(uint16_t x,uint16_t y,uint16_t w);
+void duizhun_zizhaun(uint16_t w);
+void duizhun_y(uint16_t y);   
+void duizhun_x(uint16_t x);
+
+void Vxyw_vector_upper(void);
+void chassis_motor_speed(int Vx,int Vy,float w,ROBO_BASE* Robo);
+void chassis_upperControl(void);
+void chassis_remoteControl(void);
+void chassis_autoControl(int Vx,int Vy,float w,ROBO_BASE* Robo);
+
+
+void catchmodecontrol(void);
+void chassis_in_catchmode(void);
+
+void send_to_upper(uint8_t* Tx_msg);
+
 void chassis_stop(void);
 #endif
 

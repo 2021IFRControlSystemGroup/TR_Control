@@ -31,6 +31,7 @@
 #include "main.h"
 #include "uart_communicate.h"
 #include "usart2_route.h"
+#include "can_commmunication.h"
 
 /* USER CODE END Includes */
 
@@ -61,8 +62,16 @@ extern RC_Ctl_t RC_CtrlData;
 extern int chassis_w;
 //extern int chassis_x=0;
 //extern int chassis_y=0;
-DISTANCE distance;
-
+extern DISTANCE distance;
+extern ROUTE_DATA Route_Data;
+extern PID pid;
+extern PID pid_y;
+uint8_t GY_1_Uart_Rx[8];
+uint8_t GY_2_Uart_Rx[8];
+uint8_t front_Uart_Rx[10];
+  CAN_RxHeaderTypeDef RxMeg2;
+extern int16_t angle_error;
+extern flag f;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,13 +86,21 @@ DISTANCE distance;
 
 /* External variables --------------------------------------------------------*/
 extern CAN_HandleTypeDef hcan1;
+extern CAN_HandleTypeDef hcan2;
 extern TIM_HandleTypeDef htim2;
 extern TIM_HandleTypeDef htim3;
+extern TIM_HandleTypeDef htim4;
 extern DMA_HandleTypeDef hdma_usart1_rx;
 extern DMA_HandleTypeDef hdma_usart2_rx;
 extern DMA_HandleTypeDef hdma_usart2_tx;
+extern DMA_HandleTypeDef hdma_usart3_rx;
+extern DMA_HandleTypeDef hdma_usart3_tx;
+extern DMA_HandleTypeDef hdma_usart6_rx;
+extern DMA_HandleTypeDef hdma_usart6_tx;
 extern UART_HandleTypeDef huart1;
 extern UART_HandleTypeDef huart2;
+extern UART_HandleTypeDef huart3;
+extern UART_HandleTypeDef huart6;
 /* USER CODE BEGIN EV */
 
 /* USER CODE END EV */
@@ -240,6 +257,34 @@ void EXTI0_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles DMA1 stream1 global interrupt.
+  */
+void DMA1_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream1_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart3_rx);
+  /* USER CODE BEGIN DMA1_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream1_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA1 stream3 global interrupt.
+  */
+void DMA1_Stream3_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 0 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart3_tx);
+  /* USER CODE BEGIN DMA1_Stream3_IRQn 1 */
+
+  /* USER CODE END DMA1_Stream3_IRQn 1 */
+}
+
+/**
   * @brief This function handles DMA1 stream5 global interrupt.
   */
 void DMA1_Stream5_IRQHandler(void)
@@ -275,13 +320,13 @@ void CAN1_RX0_IRQHandler(void)
   /* USER CODE BEGIN CAN1_RX0_IRQn 0 */
   TX_BUFFER Tx;
 	extern ROBO_BASE Robo_Base;
-	
+	HAL_CAN_GetRxMessage(&hcan1,CAN_RX_FIFO0,&RxMeg,Robo_Base.Rx_CAN1);
+	Motor_Speed_Analysis(&Robo_Base,Robo_Base.Rx_CAN1,RxMeg.StdId);
   /* USER CODE END CAN1_RX0_IRQn 0 */
   HAL_CAN_IRQHandler(&hcan1);
   /* USER CODE BEGIN CAN1_RX0_IRQn 1 */
-  HAL_CAN_GetRxMessage(&hcan1,CAN_RX_FIFO0,&RxMeg,Robo_Base.Rx_CAN1);
-	Motor_Speed_Analysis(&Robo_Base,Robo_Base.Rx_CAN1,RxMeg.StdId);
-  HAL_UART_Transmit_DMA(&huart2,Tx.Tx_buffer,Tx.length);
+
+
   /* USER CODE END CAN1_RX0_IRQn 1 */
 }
 
@@ -306,37 +351,9 @@ void TIM3_IRQHandler(void)
   /* USER CODE BEGIN TIM3_IRQn 0 */
   extern uint32_t SYS_Time;
   extern int Flag;
-	if(!RC_CtrlData.rc.s1==2 || distance.distance1 != distance.distance2) chassis_w=0; 
-//	if(!RC_CtrlData.rc.s1==1 && RC_CtrlData.rc.s2==1) chassis_x=0; 
-//	else chassis_x=1;
-//	if(!RC_CtrlData.rc.s1==1 && RC_CtrlData.rc.s2==3) chassis_y=0; 
-//	else chassis_y=1;
-	
-	if(RC_CtrlData.rc.s1==2)   //全向平移  遥控器控制
-			{
-			   chassis_control();	          	
-			}
-			//上位机修改start_route_flag==1
-		  else if(RC_CtrlData.rc.s1==1 && RC_CtrlData.rc.s2==1)   //自转到平行
-			{
-			   chassis_rotate();
-//				 if(distance.distance1== distance.distance2)
-//					 start_route_flag=2;
-			}	 
-			else if(RC_CtrlData.rc.s1==1 && RC_CtrlData.rc.s2==2)   //x轴距离
-			{
-         chassis_x();
-			}
-			else if(RC_CtrlData.rc.s1==1 && RC_CtrlData.rc.s2==3) //y
-			{
-					chassis_y();
-//				  if(distance3==1000)
-//						start_route_flag=0;
-			}
-			else if(RC_CtrlData.rc.s1==3)
-			{
-			    chassis_stop();
-			}
+
+
+
   /* USER CODE END TIM3_IRQn 0 */
   HAL_TIM_IRQHandler(&htim3);
   /* USER CODE BEGIN TIM3_IRQn 1 */
@@ -348,12 +365,25 @@ void TIM3_IRQHandler(void)
 }
 
 /**
+  * @brief This function handles TIM4 global interrupt.
+  */
+void TIM4_IRQHandler(void)
+{
+  /* USER CODE BEGIN TIM4_IRQn 0 */    
+	chassis_in_catchmode();
+  /* USER CODE END TIM4_IRQn 0 */
+  HAL_TIM_IRQHandler(&htim4);
+  /* USER CODE BEGIN TIM4_IRQn 1 */
+
+  /* USER CODE END TIM4_IRQn 1 */
+}
+
+/**
   * @brief This function handles USART1 global interrupt.
   */
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-//  Usart_Receive_IDLE(&huart1);
 	Uart_DMA_Process(&huart1,&hdma_usart1_rx,&Uart1_Rx,&RemoteDataProcess);
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
@@ -368,7 +398,9 @@ void USART1_IRQHandler(void)
 void USART2_IRQHandler(void)
 {
   /* USER CODE BEGIN USART2_IRQn 0 */
-	Uart_DMA_Process(&huart2,&hdma_usart2_rx,&Uart2_Rx,&RouteData_analysis);
+   	HAL_UART_Receive_DMA(&huart2,GY_1_Uart_Rx,8);
+	  Uart_DMA_Process_53(GY_1_Uart_Rx,1);
+//	Uart_DMA_Process(&huart2,&hdma_usart2_rx,&Uart2_Rx,&RouteData_analysis);
 	
   /* USER CODE END USART2_IRQn 0 */
   HAL_UART_IRQHandler(&huart2);
@@ -379,6 +411,35 @@ void USART2_IRQHandler(void)
 	
 	
   /* USER CODE END USART2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART3 global interrupt.
+  */
+void USART3_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART3_IRQn 0 */
+ 	HAL_UART_Receive_DMA(&huart3,GY_2_Uart_Rx,8);
+	Uart_DMA_Process_53(GY_2_Uart_Rx,2);
+  /* USER CODE END USART3_IRQn 0 */
+  HAL_UART_IRQHandler(&huart3);
+  /* USER CODE BEGIN USART3_IRQn 1 */
+
+  /* USER CODE END USART3_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream1 global interrupt.
+  */
+void DMA2_Stream1_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_rx);
+  /* USER CODE BEGIN DMA2_Stream1_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream1_IRQn 1 */
 }
 
 /**
@@ -393,6 +454,65 @@ void DMA2_Stream2_IRQHandler(void)
   /* USER CODE BEGIN DMA2_Stream2_IRQn 1 */
 
   /* USER CODE END DMA2_Stream2_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN2 TX interrupts.
+  */
+void CAN2_TX_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN2_TX_IRQn 0 */
+
+  /* USER CODE END CAN2_TX_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan2);
+  /* USER CODE BEGIN CAN2_TX_IRQn 1 */
+
+  /* USER CODE END CAN2_TX_IRQn 1 */
+}
+
+/**
+  * @brief This function handles CAN2 RX0 interrupts.
+  */
+void CAN2_RX0_IRQHandler(void)
+{
+  /* USER CODE BEGIN CAN2_RX0_IRQn 0 */
+	extern ROBO_BASE Robo_Base;
+  HAL_CAN_GetRxMessage(&hcan2,CAN_RX_FIFO0,&RxMeg2,Robo_Base.Rx_CAN2);
+  chassis_receivePC(Robo_Base.Rx_CAN2,RxMeg2.StdId);
+  /* USER CODE END CAN2_RX0_IRQn 0 */
+  HAL_CAN_IRQHandler(&hcan2);
+  /* USER CODE BEGIN CAN2_RX0_IRQn 1 */
+
+  /* USER CODE END CAN2_RX0_IRQn 1 */
+}
+
+/**
+  * @brief This function handles DMA2 stream6 global interrupt.
+  */
+void DMA2_Stream6_IRQHandler(void)
+{
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 0 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 0 */
+  HAL_DMA_IRQHandler(&hdma_usart6_tx);
+  /* USER CODE BEGIN DMA2_Stream6_IRQn 1 */
+
+  /* USER CODE END DMA2_Stream6_IRQn 1 */
+}
+
+/**
+  * @brief This function handles USART6 global interrupt.
+  */
+void USART6_IRQHandler(void)
+{
+  /* USER CODE BEGIN USART6_IRQn 0 */
+  HAL_UART_Receive_DMA(&huart6,front_Uart_Rx,USART6_TX_LEN_MAX);
+	Uart6_DMA_Process_front(front_Uart_Rx);  
+  /* USER CODE END USART6_IRQn 0 */
+  HAL_UART_IRQHandler(&huart6);
+  /* USER CODE BEGIN USART6_IRQn 1 */
+
+  /* USER CODE END USART6_IRQn 1 */
 }
 
 /* USER CODE BEGIN 1 */

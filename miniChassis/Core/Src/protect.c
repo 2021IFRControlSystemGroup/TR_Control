@@ -1,20 +1,38 @@
-////#include "control.h"
+
 //#include "protect.h"
-//#include "chassis.h"
 
-//#define abs(x) ((x)>0? (x):(-(x)))
+////#define abs(x) ((x)>0? (x):(-(x)))
 
-//ERROR_CHECK Error_Check = {LOST_CYCLE,{0},{0},{0},{0}};
-//extern WORKSTATE WorkState;
-//extern u32 time_tick_1ms;
-////extern GET_INA226_DATA INA226_Data;
+////ERROR_CHECK Error_Check = {LOST_CYCLE,{0},{0},{0},{0}};
+////extern WORKSTATE WorkState;
+////extern u32 time_tick_1ms;
+//////extern GET_INA226_DATA INA226_Data;
 
 //void LostCountAdd(u16* count)
 //{
 //	if(*count <= 0xFFFE) 
 //		(*count)++;
 //}
+
+
+///*************************
+//1.上位机不发消息的情况：进串口中断加1，
+//                        遥控器选择到上位机模式，
+//                        上位机发消息时间间隔12um，12*5的时间内没有发消息，即上位机不发消息，
+//                        底盘停止
+//2.上位机发错误消息：CRC校验，不对则底盘停止
+//**************************/
+//static uint16_t upper_count;  
+//void UpperProtect(uint16_t count)  
+//{
+//	     count++;    //放串口2中断里累加
+//       if()        //放上位机分析函数里面，如果长时间不累加，清空上位机数据。
+//}
 //	
+
+
+
+
 
 //void LostCountFeed(u16* count)
 //{

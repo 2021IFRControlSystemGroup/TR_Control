@@ -118,11 +118,12 @@ void SystemIO_Usart_ToString(int32_t System_Out,int32_t System_In);							//系统
 void PID_Init(PID *pid, float Kp, float Ki, float Kd, float error_max, float dead_line, float intergral_max, float output_max);		//PID参数初始化函数
 void BASE_Init(ROBO_BASE *Robo);																									//底盘PID参数初始化的接口函数
 
-void PID_General_Cal(PID *pid, float fdbV, float tarV,uint8_t moto_num,uint8_t *Tx_msg);	//PID计算函数----为了向下兼容
 void PID_Speed_Cal(Speed_System* Speed_Motor,uint8_t *Tx_msg);								//速度环系统PID计算函数
 //void PID_Pos_Cal(Pos_System* Pos_Motor,uint8_t *Tx_msg);									//位置环系统PID计算函数
 
 void PID_Send(ROBO_BASE* Robo);																//PID发送函数
 void Send_To_Motor_(CAN_HandleTypeDef *hcan,uint8_t* Tx_Data);								//CAN通信发送函数
+void PID_General_Cal(PID *pid, float fdbV, float tarV);
+void Send_To_other(CAN_HandleTypeDef *hcan,uint8_t* Tx_Data,uint32_t ID,uint8_t DLC);
 //---------------------------------//
 #endif

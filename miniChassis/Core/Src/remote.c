@@ -9,8 +9,6 @@ si:1上位机底盘平移
 							 3 y距离
 							 
 */
-//RC_Ctl_t RC_CtrlData.rc.s1=1;
-//RC_Ctl_t RC_CtrlData.rc.s2=1;
 
 void RemoteDataProcess(uint8_t *pData)   
 {     	

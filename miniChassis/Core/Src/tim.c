@@ -31,6 +31,7 @@
 
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 
 /* TIM2 init function */
 void MX_TIM2_Init(void)
@@ -40,9 +41,9 @@ void MX_TIM2_Init(void)
   TIM_IC_InitTypeDef sConfigIC = {0};
 
   htim2.Instance = TIM2;
-  htim2.Init.Prescaler = 83;
+  htim2.Init.Prescaler = 84-1;
   htim2.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim2.Init.Period = 999;
+  htim2.Init.Period = 0xFFFF;
   htim2.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim2.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim2) != HAL_OK)
@@ -120,6 +121,35 @@ void MX_TIM3_Init(void)
   }
 
 }
+/* TIM4 init function */
+void MX_TIM4_Init(void)
+{
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 84-1;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 1000-1;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+}
 
 void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 {
@@ -178,6 +208,21 @@ void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
 
   /* USER CODE END TIM3_MspInit 1 */
   }
+  else if(tim_baseHandle->Instance==TIM4)
+  {
+  /* USER CODE BEGIN TIM4_MspInit 0 */
+
+  /* USER CODE END TIM4_MspInit 0 */
+    /* TIM4 clock enable */
+    __HAL_RCC_TIM4_CLK_ENABLE();
+
+    /* TIM4 interrupt Init */
+    HAL_NVIC_SetPriority(TIM4_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIM4_IRQn);
+  /* USER CODE BEGIN TIM4_MspInit 1 */
+
+  /* USER CODE END TIM4_MspInit 1 */
+  }
 }
 
 void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
@@ -222,17 +267,27 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 
   /* USER CODE END TIM3_MspDeInit 1 */
   }
+  else if(tim_baseHandle->Instance==TIM4)
+  {
+  /* USER CODE BEGIN TIM4_MspDeInit 0 */
+
+  /* USER CODE END TIM4_MspDeInit 0 */
+    /* Peripheral clock disable */
+    __HAL_RCC_TIM4_CLK_DISABLE();
+
+    /* TIM4 interrupt Deinit */
+    HAL_NVIC_DisableIRQ(TIM4_IRQn);
+  /* USER CODE BEGIN TIM4_MspDeInit 1 */
+
+  /* USER CODE END TIM4_MspDeInit 1 */
+  }
 }
 
 /* USER CODE BEGIN 1 */
 
 
 /* USER CODE BEGIN 0 */
-
-/* USER CODE END 0 */
-
-//TIM_HandleTypeDef htim3;
-//extern DISTANCE distance;
+//DISTANCE distance;
 
 //double frand(void)
 //{
@@ -269,99 +324,115 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 //	return x_now;
 //}
 
-//uint8_t rising_flag = 0; //…œ…˝—ÿ≤∂ªÒ±Íº«Œª
+//uint8_t rising_flag1 = 0; //œ¬Ωµ—ÿ≤∂ªÒ±Íº«Œª
 //uint8_t rising_flag2 = 0;
-//uint32_t cap_value1 = 0;
-//uint32_t cap_value2 = 0;
-//uint32_t cap_value3 = 0;
-//uint32_t cap_value4 = 0;
+//uint8_t rising_flag3 = 0;
+//uint32_t cap_value[3][4] = {0};  //µ⁄“ª∏ˆ–Ú∫≈ «gy53∫≈£¨µ⁄∂˛∏ˆ–Ú∫≈ « ±º‰£¨∑÷±Œ™œ¬Ωµ—ÿ ±º‰£¨…œ…˝—ÿ ±º‰£¨≥÷–¯ ±º‰
+
+
+
 
 //void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 //{
 //  if( htim->Instance == TIM3)
 //	{
-//	   if(rising_flag)
+//	   if(rising_flag1)
 //		 {
-//		     cap_value1 +=1000000; //√ø¥Œ“Á≥ˆ◊ˆ“ª∏ˆº”ARRµƒº«¬º
-//			 cap_value2 += 1000000;
-////			 cap_value3 += 1000000;
-//			 cap_value4 += 1000000;
+//			 	 cap_value[0][3] +=  65536;//1000000
 //		 }
+////		 if(rising_flag2)
+////		 {
+////		     cap_value[1][3] += 65536;//= 1000000;
+////		 }
 //	}
 //	if( htim->Instance == TIM2)
 //	{
-//	   if(rising_flag2)
+//	   if(rising_flag3)
 //		 {
-//		     cap_value3 += 1000000;
+//		     cap_value[2][3] += 65536;
 //		 }
 //	}
 //}
 
-////uint16_t distance=0;
+
 //void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
 //{
 //	if( htim->Instance == TIM3)
 //	{
-//		if(!rising_flag)        //≤∂ªÒ…œ…˝—ÿ
-//		{
-//		  rising_flag=1;
-//			__HAL_TIM_DISABLE(htim);
-//			__HAL_TIM_SET_COUNTER(htim,0);
-//			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1);//«Â≥˝…œ¥Œ…Ë÷√
-//			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2);//«Â≥˝…œ¥Œ…Ë÷√
-//			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_3);//«Â≥˝…œ¥Œ…Ë÷√
-//      TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_4);//«Â≥˝…œ¥Œ…Ë÷√
 
+//		if(!rising_flag1)        //≤∂ªÒ…œ…˝—ÿ
+//		{
+//		  rising_flag1=1;
+//			__HAL_TIM_DISABLE(htim);
+//			 cap_value[0][0]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+//			cap_value[0][3] = 0;
+//			
+//			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1);//«Â≥˝…œ¥Œ…Ë÷√
+//			
 //			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1,TIM_ICPOLARITY_FALLING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
-//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2,TIM_ICPOLARITY_FALLING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
-//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_3,TIM_ICPOLARITY_FALLING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
-//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_4,TIM_ICPOLARITY_FALLING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
 //			
 //			__HAL_TIM_ENABLE(htim);
 //		}
 //    else                    //≤∂ªÒœ¬Ωµ—ÿ£¨±æ¥Œ≤∂ªÒΩ· ¯
 //		{
-//			uint32_t value;
-//		  rising_flag=0;
-//			cap_value1= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
-//			cap_value2= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
-////    cap_value3= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_3);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
-//      cap_value4= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_4);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
+//		  rising_flag1=0;
+//			cap_value[0][1]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
+//      
+//			cap_value[0][2] = cap_value[0][3]+cap_value[0][1]-cap_value[0][0];
 //			
-//			
-//			distance.distance1 = cap_value1/10;
-//			distance.distance2 = cap_value2/10;
-////			distance.distance3 = cap_value3/10;
-//			distance.distance4 = cap_value4/10;
-//			
+//			distance.distance1 = cap_value[0][2]/10;
 //			kalman_filter(distance.distance1);
-//			kalman_filter(distance.distance2);
-//			kalman_filter(distance.distance3);
-//			kalman_filter(distance.distance4);
-//			__HAL_TIM_DISABLE(htim);
-////			__HAL_TIM_SET_COUNTER(htim,0);
+//			__HAL_TIM_DISABLE(htim); 
+//			cap_value[0][0]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 //			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1);//«Â≥˝…œ¥Œ…Ë÷√
-//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1,TIM_ICPOLARITY_RISING);  //…Ë÷√≤∂ªÒ…œ…˝—ÿ
-//			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2);//«Â≥˝…œ¥Œ…Ë÷√
-//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2,TIM_ICPOLARITY_RISING);  
-//			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_3);//«Â≥˝…œ¥Œ…Ë÷√
-//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_3,TIM_ICPOLARITY_RISING);  
-//			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_4);//«Â≥˝…œ¥Œ…Ë÷√
-//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_4,TIM_ICPOLARITY_RISING);  
+//			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1,TIM_ICPOLARITY_RISING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
 //			
 //			
 //			__HAL_TIM_ENABLE(htim);
-//	   
 //		}
+////		if(!rising_flag2)        //≤∂ªÒ…œ…˝—ÿ
+////		{
+////		  rising_flag2=1;
+////			cap_value[1][0]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+////			__HAL_TIM_DISABLE(htim);
+////			cap_value[1][3] = 0;
+////		
+////			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2);//«Â≥˝…œ¥Œ…Ë÷√
+////			
+////			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2,TIM_ICPOLARITY_FALLING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
+////			
+////			__HAL_TIM_ENABLE(htim);
+////		}
+////    else                    //≤∂ªÒœ¬Ωµ—ÿ£¨±æ¥Œ≤∂ªÒΩ· ¯
+////		{
+////		  rising_flag2=0;
+////			cap_value[1][1]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
+////      
+////			cap_value[1][2] = cap_value[1][3]+cap_value[1][1]-cap_value[1][0];
+////			
+////			distance.distance2 = cap_value[1][2]/10;
+////			kalman_filter(distance.distance2);
+////			__HAL_TIM_DISABLE(htim); 
+////			cap_value[1][0]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_2);
+////			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2);//«Â≥˝…œ¥Œ…Ë÷√
+////			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_2,TIM_ICPOLARITY_RISING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
+////			
+////			
+////			__HAL_TIM_ENABLE(htim);
+////		}
+//		
+//		
 //		}
 //	
 //		if( htim->Instance == TIM2)
 //	{
-//		if(!rising_flag2)        //≤∂ªÒ…œ…˝—ÿ
+//		if(!rising_flag3)        //≤∂ªÒœ¬Ωµ—ÿ
 //		{
-//		  rising_flag2=1;
+//		  rising_flag3=1;
 //			__HAL_TIM_DISABLE(htim);
-//			__HAL_TIM_SET_COUNTER(htim,0);
+//			 cap_value[2][0]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
+//			cap_value[2][3] = 0;
+//			
 //			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1);//«Â≥˝…œ¥Œ…Ë÷√
 //			
 //			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1,TIM_ICPOLARITY_FALLING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
@@ -370,15 +441,15 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 //		}
 //    else                    //≤∂ªÒœ¬Ωµ—ÿ£¨±æ¥Œ≤∂ªÒΩ· ¯
 //		{
-//			uint32_t value;
-//		  rising_flag2=0;
-//			 cap_value3= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
+//		  rising_flag3=0;
+//			cap_value[2][1]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value?%1000
 //      
+//			cap_value[2][2] = cap_value[2][3]+cap_value[2][1]-cap_value[2][0];
 //			
-//			distance.distance3 = cap_value3/10;
+//			distance.distance3 = cap_value[2][2]/10;
 //			kalman_filter(distance.distance3);
-//			__HAL_TIM_DISABLE(htim);
-////			__HAL_TIM_SET_COUNTER(htim,0);
+//			__HAL_TIM_DISABLE(htim); 
+//			cap_value[2][0]= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);
 //			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1);//«Â≥˝…œ¥Œ…Ë÷√
 //			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1,TIM_ICPOLARITY_RISING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
 //			
@@ -389,158 +460,10 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 //		}
 //	}
 
-	
-	
-
-/* TIM3 init function */
-//void MX_TIM3_Init(void)
-//{
-//  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
-//  TIM_MasterConfigTypeDef sMasterConfig = {0};
-
-//  htim3.Instance = TIM3;
-//  htim3.Init.Prescaler = 83;
-//  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-//  htim3.Init.Period = 999;
-//  htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
-//  htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_ENABLE;
-//  if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
-//  if (HAL_TIM_ConfigClockSource(&htim3, &sClockSourceConfig) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-//  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
-//  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
-//  if (HAL_TIMEx_MasterConfigSynchronization(&htim3, &sMasterConfig) != HAL_OK)
-//  {
-//    Error_Handler();
-//  }
-
-//}
-
-//void HAL_TIM_Base_MspInit(TIM_HandleTypeDef* tim_baseHandle)
-//{
-
-//  if(tim_baseHandle->Instance==TIM3)
-//  {
-//  /* USER CODE BEGIN TIM3_MspInit 0 */
-
-//  /* USER CODE END TIM3_MspInit 0 */
-//    /* TIM3 clock enable */
-//    __HAL_RCC_TIM3_CLK_ENABLE();
-
-//    /* TIM3 interrupt Init */
-//    HAL_NVIC_SetPriority(TIM3_IRQn, 5, 0);
-//    HAL_NVIC_EnableIRQ(TIM3_IRQn);
-//  /* USER CODE BEGIN TIM3_MspInit 1 */
-
-//  /* USER CODE END TIM3_MspInit 1 */
-//  }
-//}
-
-//void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
-//{
-
-//  if(tim_baseHandle->Instance==TIM3)
-//  {
-//  /* USER CODE BEGIN TIM3_MspDeInit 0 */
-
-//  /* USER CODE END TIM3_MspDeInit 0 */
-//    /* Peripheral clock disable */
-//    __HAL_RCC_TIM3_CLK_DISABLE();
-
-//    /* TIM3 interrupt Deinit */
-//    HAL_NVIC_DisableIRQ(TIM3_IRQn);
-//  /* USER CODE BEGIN TIM3_MspDeInit 1 */
-
-//  /* USER CODE END TIM3_MspDeInit 1 */
-//  }
-//}
+//	
+/* USER CODE END 0 */
 
 
-double frand(void)
-{
-	return 2 * ((rand() / (double)RAND_MAX) - 0.5);
-}
-
-float kalman_filter(uint16_t z_real)
-{
-	static float x_last = 0;
-	static float p_last = 0.02;
-	float Q = 0.018;
-	float R = 0.542;
-	float kg;
-	float x_mid;
-	float x_now;
-	float p_mid;
-	float p_now;
-	float z_measure;
-	int i;
-	x_last = z_real + frand()*0.03;
-	x_mid = x_last;
-	for (i = 0; i < 20;i++)
-	{
-		x_mid = x_last;
-		p_mid = p_last + Q;
-		kg = p_mid / (p_mid + R);
-		z_measure = z_real + frand()*0.03;
-		x_now = x_mid + kg*(z_measure - x_mid);
-		p_now = (1 - kg)*p_mid;
-
-		p_last = p_now;
-		x_last = x_now;
-	}
-	return x_now;
-}
-
-uint8_t rising_flag = 0; //œ¬Ωµ—ÿ≤∂ªÒ±Íº«Œª
-uint32_t cap_value = 0;
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
-{
-  if( htim->Instance == TIM3)
-	{
-	   if(rising_flag)
-		 {
-		     cap_value +=1000000; //√ø¥Œ“Á≥ˆ◊ˆ“ª∏ˆº”ARRµƒº«¬º
-		 }
-	}
-}
-
-uint16_t Distance=0;
-void HAL_TIM_IC_CaptureCallback(TIM_HandleTypeDef *htim)
-{
-	if( htim->Instance == TIM3)
-	{
-		if(!rising_flag)        //≤∂ªÒ…œ…˝—ÿ
-		{
-		  rising_flag=1;
-			__HAL_TIM_DISABLE(htim);
-			__HAL_TIM_SET_COUNTER(htim,0);
-			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1);//«Â≥˝…œ¥Œ…Ë÷√
-			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1,TIM_ICPOLARITY_FALLING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
-			
-			__HAL_TIM_ENABLE(htim);
-		}
-    else                    //≤∂ªÒœ¬Ωµ—ÿ£¨±æ¥Œ≤∂ªÒΩ· ¯
-		{
-			uint32_t value;
-		  rising_flag=0;
-			cap_value= HAL_TIM_ReadCapturedValue(htim, TIM_CHANNEL_1);   //cap_value +  “ª√Î£∫cap_value/1000000£¨∫¡√Î£∫cap_value/%1000000/1000£¨Œ¢√Îcap_value¨%1000
-			Distance = cap_value/10;
-			kalman_filter(Distance);
-			__HAL_TIM_DISABLE(htim);
-			TIM_RESET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1);//«Â≥˝…œ¥Œ…Ë÷√
-			TIM_SET_CAPTUREPOLARITY(htim,TIM_CHANNEL_1,TIM_ICPOLARITY_RISING);  //…Ë÷√≤∂ªÒœ¬Ωµ—ÿ
-			
-			__HAL_TIM_ENABLE(htim);
-	   
-		}
-		}
-	}
 /* USER CODE END 1 */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

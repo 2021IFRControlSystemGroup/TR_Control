@@ -55,6 +55,9 @@ uint32_t SYS_Time=0;
 int Flag=0;
 extern ROBO_BASE Robo_Base;
 extern ROUTE_DATA Route_Data;
+extern PID pid_w;
+extern PID pid_y;
+extern PID pid_x;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -84,6 +87,9 @@ int main(void)
   HAL_Init();
 
   /* USER CODE BEGIN Init */
+  PID_Init(&pid_w,	25.0f,	0,	0,	2000,	0,	500,	1000); 
+	PID_Init(&pid_y,	15.0f,	0,	0,	2000,	0,	500,	1000); 
+	PID_Init(&pid_x,	15.0f,	0,	0,	2000,	0,	500,	1000); 
 
   /* USER CODE END Init */
 
@@ -105,20 +111,32 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART1_UART_Init();
   MX_TIM2_Init();
+  MX_TIM4_Init();
+  MX_USART3_UART_Init();
+  MX_USART6_UART_Init();
+  MX_CAN2_Init();
   /* USER CODE BEGIN 2 */
-  CAN_Filter_Init();
-
+ CAN_Filter_Init(&hcan1);
   HAL_CAN_Start(&hcan1);
   HAL_CAN_ActivateNotification(&hcan1,CAN_IT_RX_FIFO0_MSG_PENDING);
+  
+  CAN_Filter_Init(&hcan2);
+  HAL_CAN_Start(&hcan2);
+  HAL_CAN_ActivateNotification(&hcan2,CAN_IT_RX_FIFO0_MSG_PENDING);
+	
 	BASE_Init(&Robo_Base);
   Usart_All_Init();
+
+	 HAL_TIM_Base_Start_IT(&htim4);
   HAL_TIM_Base_Start_IT(&htim3);
 	HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_1);
-//	HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_2);
-//	HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_3);
-//	HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_4);
+	HAL_TIM_IC_Start_IT(&htim3,TIM_CHANNEL_2);
 	HAL_TIM_Base_Start_IT(&htim2); //使能溢出更新中断
 	HAL_TIM_IC_Start_IT(&htim2,TIM_CHANNEL_1);
+		Uart2_Eable();//53
+		Uart3_Eable();//53
+		Uart6_Eable();//53
+
 /************************************************************************************/	
 /************************************************************************************/
   /* USER CODE END 2 */
@@ -223,6 +241,8 @@ void assert_failed(uint8_t *file, uint32_t line)
   /* USER CODE BEGIN 6 */
   /* User can add his own implementation to report the file name and line number,
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+  
+	
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */
